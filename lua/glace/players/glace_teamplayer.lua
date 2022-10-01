@@ -106,13 +106,17 @@ local Engage = {
 	"bot/returning_fire.wav" 
 }
 
-local FriendKill = {
-	"bot/what_happened.wav",
-	"bot/noo.wav",
-	"bot/oh_my_god.wav",
-	"bot/oh_man.wav",
-	"bot/oh_no_sad.wav",
-	"bot/what_have_you_done.wav",
+local FriendPain = {
+	"bot/cut_it_out.wav",
+	"bot/what_are_you_doing.wav",
+	"bot/stop_it.wav",
+	"bot/ow_its_me.wav",
+	"bot/ow.wav",
+	"bot/ouch.wav",
+	"bot/im_on_your_side.wav",
+	"bot/hold_your_fire.wav",
+	"bot/hey.wav",
+	"bot/hey2.wav",
 }
 
 local Pain = {
@@ -135,6 +139,14 @@ local Long_guns = {
 	"weapon_mp5_hl1",
 	"weapon_rpg_hl1",
 	"weapon_gauss",
+	"tf_weapon_grenadelauncher",
+	"tf_weapon_pistol_scout",
+	"tf_weapon_pistol",
+	"tf_weapon_revolver",
+	"tf_weapon_rocketlauncher",
+	"tf_weapon_shotgun_pyro",
+	"tf_weapon_sniperrifle_australium",
+	"tf_weapon_sniperrifle",
 }
 
 local Short_guns = {
@@ -143,6 +155,15 @@ local Short_guns = {
 	"weapon_handgrenade",
 	"weapon_snark",
 	"weapon_shotgun_hl1",
+	"tf_weapon_flamethrower",
+	"tf_weapon_scattergun",
+	"tf_weapon_shotgun_soldier",
+	"tf_weapon_shotgun_primary",
+	"tf_weapon_shotgun_hwg",
+	"tf_weapon_minigun",
+	"tf_weapon_smg",
+	"tf_weapon_pipebomblauncher",
+	"tf_weapon_syringegun_medic",
 }
 
 local melee = {
@@ -150,6 +171,15 @@ local melee = {
 	"weapon_stunstick",
 	"weapon_crowbar_hl1",
 	"weapon_fists",
+	"tf_weapon_bat",
+	"tf_weapon_bonesaw",
+	"tf_weapon_bottle",
+	"tf_weapon_fireaxe",
+	"tf_weapon_fists",
+	"tf_weapon_knife",
+	"tf_weapon_club",
+	"tf_weapon_shovel",
+	"tf_weapon_wrench",
 }
 
 local AllEnemies = {
@@ -420,13 +450,13 @@ function SpawnTeamGlacePlayer()
         if attacker == self then return end
 		self:Glace_Face( attacker )
 		self:EmitSound( Pain[ random( #Pain ) ] )
+		self:Glace_CancelMove() 
+        self:Glace_SetEnemy( attacker )
+        self:Glace_SetState( "incombat" )
 		if random(20) == 1 then
 			self:Glace_SaySoundFile( Helps[ random( #Helps ) ] )
 			has_talked = true
 		end
-        --self:Glace_CancelMove() 
-        --self:Glace_SetEnemy( attacker )
-        --self:Glace_SetState( "incombat" )
     end
 
     -- Now we create our normal Think hook
@@ -549,7 +579,7 @@ function SpawnTeamGlacePlayer()
 			if GetConVar( "glaceteambots_shouldfollow" ):GetBool(1) then
 				for k, v in ipairs(human) do
 					self:Glace_Face( v )
-					self:Glace_MoveToPos( v, nil, 250, nil, true) -- Go to that spot with the default args
+					self:Glace_MoveToPos( v, nil, 250, nil, false) -- Follow the player
 				end
 			else
 				self:Glace_MoveToPos( pos ) -- Go to that spot with the default args
