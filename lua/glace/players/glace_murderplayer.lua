@@ -271,7 +271,7 @@ function SpawnGlaceMurderPlayer()
         if !taunts[tauntype][sex] then return end
     
         local taunt = table.Random(taunts[tauntype][sex])
-        self:EmitSound(taunt.sound)
+        self:Glace_SaySoundFile(taunt.sound)
     
         self.LastTaunt = CurTime() + SoundDuration(taunt.sound) + 0.3
     end
