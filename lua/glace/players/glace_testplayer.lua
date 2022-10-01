@@ -80,10 +80,11 @@ function SpawnTestGlacePlayer()
 
     end
 
+
     -- Now we create our normal Think hook
     function ply:Glace_Think()
 
-        if random(50) == 1 then
+        if random( 50 ) == 1 then
             self:Glace_SaySoundFile( "vo/breencast/br_instinct01.wav" )
         end
 
