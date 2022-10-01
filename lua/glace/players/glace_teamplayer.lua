@@ -139,14 +139,6 @@ local Long_guns = {
 	"weapon_mp5_hl1",
 	"weapon_rpg_hl1",
 	"weapon_gauss",
-	"tf_weapon_grenadelauncher",
-	"tf_weapon_pistol_scout",
-	"tf_weapon_pistol",
-	"tf_weapon_revolver",
-	"tf_weapon_rocketlauncher",
-	"tf_weapon_shotgun_pyro",
-	"tf_weapon_sniperrifle_australium",
-	"tf_weapon_sniperrifle",
 }
 
 local Short_guns = {
@@ -155,15 +147,6 @@ local Short_guns = {
 	"weapon_handgrenade",
 	"weapon_snark",
 	"weapon_shotgun_hl1",
-	"tf_weapon_flamethrower",
-	"tf_weapon_scattergun",
-	"tf_weapon_shotgun_soldier",
-	"tf_weapon_shotgun_primary",
-	"tf_weapon_shotgun_hwg",
-	"tf_weapon_minigun",
-	"tf_weapon_smg",
-	"tf_weapon_pipebomblauncher",
-	"tf_weapon_syringegun_medic",
 }
 
 local melee = {
@@ -171,15 +154,6 @@ local melee = {
 	"weapon_stunstick",
 	"weapon_crowbar_hl1",
 	"weapon_fists",
-	"tf_weapon_bat",
-	"tf_weapon_bonesaw",
-	"tf_weapon_bottle",
-	"tf_weapon_fireaxe",
-	"tf_weapon_fists",
-	"tf_weapon_knife",
-	"tf_weapon_club",
-	"tf_weapon_shovel",
-	"tf_weapon_wrench",
 }
 
 local AllEnemies = {
