@@ -11,6 +11,15 @@ function tablelength(T)
 	return count
 end
 
+function table.contains(table, element)
+  for _, value in pairs(table) do
+    if value == element then
+      return true
+    end
+  end
+  return false
+end
+
 -- This table is used for the loot lists 
 local Loot = {
     ["item_ammo_357"]=true,
@@ -41,6 +50,8 @@ local Loot = {
 }
 
 local Taunts = {
+	"bot/enemy_down.wav",
+	"bot/enemy_down2.wav",
 	"bot/hes_dead.wav",
 	"bot/hes_down.wav",
 	"bot/got_him.wav", 
@@ -74,6 +85,21 @@ local Taunts = {
 	"bot/thats_right.wav",
 	"bot/we_owned_them.wav",
 	"bot/they_never_knew_what_hit_them.wav",
+}
+
+local AllClear = {
+	"bot/clear.wav",
+	"bot/clear2.wav",
+	"bot/clear3.wav",
+	"bot/clear4.wav",
+	"bot/area_clear.wav",
+	"bot/that_was_it.wav",
+	"bot/that_was_the_last_one.wav",
+	"bot/that_was_the_last_guy.wav",
+	"bot/good_job_team.wav",
+	"bot/nice_work_team.wav",
+	"bot/way_to_be_team.wav",
+	"bot/well_done.wav",
 }
 
 local Helps = {
@@ -129,6 +155,22 @@ local Engage = {
 	"bot/returning_fire.wav" 
 }
 
+local Join = {
+	"bot/ill_come_with_you.wav",
+	"bot/ill_go_with_you.wav",
+	"bot/ill_go_too.wav",
+	"bot/i_got_your_back.wav",
+	"bot/i_got_your_back2.wav",
+	"bot/im_with_you.wav",
+	"bot/lead_on_sir.wav",
+	"bot/lead_the_way_sir.wav",
+	"bot/lead_the_way.wav",
+	"bot/ok_sir_lets_go.wav",
+	"bot/lead_on_commander.wav",
+	"bot/lead_the_way_commander.wav",
+	"bot/ok_cmdr_lets_go.wav",
+}
+
 local FriendPain = {
 	"bot/cut_it_out.wav",
 	"bot/what_are_you_doing.wav",
@@ -147,7 +189,7 @@ local Pain = {
 	"bot/ouch.wav",
 }
 
-local Long_guns = {
+local Far = {
 	"weapon_ar2",
 	"weapon_357",
 	"weapon_pistol",
@@ -164,7 +206,7 @@ local Long_guns = {
 	"weapon_gauss",
 }
 
-local Short_guns = {
+local Close = {
 	"weapon_shotgun",
 	"weapon_frag",
 	"weapon_handgrenade",
@@ -172,7 +214,7 @@ local Short_guns = {
 	"weapon_shotgun_hl1",
 }
 
-local melee = {
+local Melee = {
 	"weapon_crowbar",
 	"weapon_stunstick",
 	"weapon_crowbar_hl1",
@@ -4143,11 +4185,14 @@ function SpawnTeamGlacePlayer()
     -- We now start making the AI
 
     ply:Glace_SetAutoReload( true )
-    ply:Glace_SelectRandomWeapon()
     ply:Glace_SetThinkTime( 0.1 )
+	--RoundManager:AddPlayerToPlay(ply)
 	local hasSwitchedm = false
 	local hasSwitchedl = false
 	local hasSwitcheds = false
+	if GetConVar( "glaceteambots_shouldfollow" ):GetBool(1) then
+		ply:Glace_Timer( 1, function() ply:Glace_SaySoundFile( Join[ random( #Join ) ] ) end)
+	end
 
 
     -- For this player, we'll create a form of State System to work with.
@@ -4180,7 +4225,7 @@ function SpawnTeamGlacePlayer()
 	function ply:Glace_radio( radiotype )
         if self.LastTaunt && self.LastTaunt > CurTime() then return end
         if !self:Alive() then return end
-		if GetConVar( "glaceteambots_notalk" ):GetBool(0) then return end
+		if GetConVar( "glaceteambots_notalk" ):GetBool(1) then return end
 		
     
         --local talk = ( radiotype[ random( #radiotype ) ] )
@@ -4195,9 +4240,51 @@ function SpawnTeamGlacePlayer()
 		self:Glace_AddKeyPress( IN_ATTACK, false )
 		self:Glace_AddKeyPress( IN_ATTACK2 )
 	
-	ply.Attackcooldown = CurTime() + 5 
+		ply.Attackcooldown = CurTime() + 5 
 	end
-
+	
+	function ply:Glace_OnSpawn()
+		if GetConVar( "glaceteambots_shouldfollow" ):GetBool(1) then
+			self:Glace_SaySoundFile( Join[ random( #Join ) ] )
+		end
+    end
+	
+	function ply:Glace_Switchweapons()
+		if IsValid(self:Glace_GetEnemy()) then
+			local TargetDist = ply:Glace_GetRangeSquaredTo( self:Glace_GetEnemy() )
+			local range = 160000
+			if (TargetDist < range/4 and TargetDist < range*2) and hasSwitchedm == false then
+				for _, v in RandomPairs(Melee) do
+					if self:HasWeapon( v ) then
+					self:Glace_SwitchWeapon( v )
+					hasSwitchedm = true
+					hasSwitchedl = false
+					hasSwitcheds = false
+					end
+				end
+			elseif (TargetDist > range) and hasSwitchedl == false then
+				for _, v in RandomPairs(Far) do
+					if self:HasWeapon( v ) then
+					self:Glace_SwitchWeapon( v )
+					hasSwitchedm = false
+					hasSwitchedl = true
+					hasSwitcheds = false
+					end
+				end
+			elseif (TargetDist < range) and hasSwitcheds == false then
+				for _, v in RandomPairs(Close) do
+					if self:HasWeapon( v ) then
+					self:Glace_SwitchWeapon( v )
+					hasSwitchedm = false
+					hasSwitchedl = false
+					hasSwitcheds = true
+					end
+				end
+			
+			end
+		end
+	end
+	
     function ply:Glace_OnKilled( attacker, inflictor )
 		self:EmitSound( Death[ random( #Death ) ] )
 		self:Glace_CancelMove() 
@@ -4208,20 +4295,14 @@ function SpawnTeamGlacePlayer()
 			self:Glace_Timer( 3, function() RunConsoleCommand("glacebase_spawnteamplayer") end)
 		else
 			self:Glace_Timer( 3, function() self:Spawn() end)
-			self:Glace_Timer( 3, function() self:Glace_SelectRandomWeapon() end)
 		end
     end
 
     function ply:Glace_OnHurt( attacker, hp, damage ) -- Play a generic pain sound
-		local friend = player.GetAll()
-		local friend2
-		
-		for k, v in ipairs( friend ) do
-			friend2 = v
-			break
+		local friend
+		for i, friend in ipairs( player.GetAll() ) do
+			if attacker == friend then self:EmitSound( FriendPain[ random( #FriendPain ) ] ) return end
 		end
-		
-		if attacker == friend2 then self:EmitSound( FriendPain[ random( #FriendPain ) ] ) return end
         if attacker == self then return end
 		self:Glace_Face( attacker )
 		self:EmitSound( Pain[ random( #Pain ) ] )
@@ -4232,7 +4313,7 @@ function SpawnTeamGlacePlayer()
 			self:Glace_radio( Helps )
 		end
     end
-
+	
     -- Now we create our normal Think hook
     function ply:Glace_Think()
 
@@ -4247,7 +4328,7 @@ function SpawnTeamGlacePlayer()
         end
 
         if IsValid(self:GetActiveWeapon()) and !self:GetActiveWeapon():HasAmmo() then -- If we run out of ammo, then switch weapons
-            self:Glace_SelectRandomWeapon()
+            self:Glace_Switchweapons()
         end
 
         if self:Glace_GetState() == "incombat" and !IsValid(self.Glace_Enemy) then -- If our enemy isn't valid then just go back to normal
@@ -4264,7 +4345,7 @@ function SpawnTeamGlacePlayer()
             return 
         end -- If the enemy is valid then don't run the code below
 
-        local surrounding = self:Glace_FindInSphere( 1500, function(ent) if IsValid(ent) and AllEnemies[ent:GetClass()] and ent:Alive() then return true end end ) -- Get Nearby NPCs and Players we can see
+        local surrounding = self:Glace_FindInSphere( 1500, function(ent) if IsValid(ent) and AllEnemies[ent:GetClass()] then return true end end ) -- Get Nearby NPCs and Players we can see
 		
 		if random(10) == 1 then
 			if tablelength(surrounding) == 1 then
@@ -4296,11 +4377,15 @@ function SpawnTeamGlacePlayer()
 
     -- This hook is the same as Nextbot's ENT:OnOtherKilled(). This will be called whenever a NPC, Nextbot, or Player that isn't us dies
     function ply:Glace_OnOtherKilled( victim, attacker, inflictor )
+		local surrounding = self:Glace_FindInSphere( 1500, function(ent) if IsValid(ent) and AllEnemies[ent:GetClass()] then return true end end ) -- Get Nearby NPCs and Players we can see
         if victim == self:Glace_GetEnemy() then
             self:Glace_Sprint( false )
             self:Glace_StopFace()
             self:Glace_SetState( "idle" )
             self:Glace_SetEnemy(nil)
+			if random(5) == 1 and tablelength(surrounding) == 0 then
+				self:Glace_radio( AllClear )
+			end
 			if random(10) == 1 then
 				self:Glace_radio( Taunts )
 			end
@@ -4337,12 +4422,9 @@ function SpawnTeamGlacePlayer()
     function ply:Glace_ThreadedThink() -- Same as Nextbot's ENT:RunBehaviour() except this is internally in a while true loop so it'll constantly run the function after it finishes the entire function
         
         if self:Glace_GetState() == "idle" then -- Idle state will just be wandering
-
+			
             self:Glace_Sprint( true )
 			--self:Glace_Timer( 15, function() has_talked = false end)
-			self:Glace_Timer( 10, function() hasSwitchedm = false end)
-			self:Glace_Timer( 10, function() hasSwitchedl = false end)
-			self:Glace_Timer( 10, function() hasSwitcheds = false end)
 			
 			local pos = self:Glace_GetRandomPosition( 2000 ) -- Get a random spot that we want to go to
 			local human = player.GetHumans()
@@ -4373,6 +4455,7 @@ function SpawnTeamGlacePlayer()
             end
 			if GetConVar( "glaceteambots_shouldfollow" ):GetBool(1) then
 				for k, v in ipairs(human) do
+					self:Glace_Face( v )
 					self:Glace_MoveToPos( v, nil, 250, nil, false) -- Follow the player
 				end
 			else
@@ -4381,37 +4464,9 @@ function SpawnTeamGlacePlayer()
 				
 
         elseif self:Glace_GetState() == "incombat" and IsValid( self:Glace_GetEnemy() ) then -- Combat State
+			self:Glace_Switchweapons()
 			if random(10) == 1 then
 				self:Glace_radio( Engage )
-			end
-			
-			-- weapon switching code can probabley be done better, but I think it's ok
-			local range = 160000
-			local TargetDist = self:Glace_GetRangeSquaredTo( self:Glace_GetEnemy() )
-			if (TargetDist < range/4 and TargetDist < range*2) and hasSwitchedm == false then
-				for k, v in RandomPairs(melee) do
-					if !self:GetWeapon( v ) then return end
-					self:Glace_SwitchWeapon ( v )
-					hasSwitchedm = true
-					hasSwitchedl = false
-					hasSwitcheds = false
-				end
-			elseif (TargetDist > range) and hasSwitchedl == false then
-				for k, v in RandomPairs(Long_guns) do
-					if !self:GetWeapon( v ) then return end
-					self:Glace_SwitchWeapon ( v )
-					hasSwitchedm = false
-					hasSwitchedl = true
-					hasSwitcheds = false
-				end
-			elseif (TargetDist < range) and hasSwitcheds == false then
-				for k, v in RandomPairs(Short_guns) do
-					if !self:GetWeapon( v ) then return end
-					self:Glace_SwitchWeapon ( v )
-					hasSwitchedm = false
-					hasSwitchedl = false
-					hasSwitcheds = true
-				end
 			end
 			
             -- This timer makes the player bhop
